@@ -6,7 +6,8 @@ export default function FilterableProductTable() {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
     const [filterText, setFilterText] = useState('');
-    const usersPerPage = 4;
+    const [pageNumber, setPageNumber] = useState(1);
+    const pageCount = Math.ceil(users.length / 4);
 
     useEffect(() => {
         setIsLoading(true);
@@ -21,11 +22,14 @@ export default function FilterableProductTable() {
 
     }, []);
 
+
     return (
         <div>
             {isLoading ? <p>Loading...</p> : null}
             <SearchBar filterText={filterText} onFilterTextChange={setFilterText} />
             <UserTable onUserClick={setSelectedUser} users={users} filterText={filterText} />
+            <PageForm pageCount={pageCount} pageNumber={pageNumber} onPageChange={setPageNumber} />
+
             {selectedUser && <div className="overlay">
                 <div className="modal">
                     <h2>{selectedUser.name}</h2>
@@ -42,6 +46,7 @@ export default function FilterableProductTable() {
 
 function UserRow({ user, onUserClick }) {
     const name = user.name;
+    const userArray = _.chunk(React.user.toArray(user), 4)
     // <span>{name}</span>;
     return (
         <tr>
@@ -88,5 +93,29 @@ function SearchBar({ filterText, onFilterTextChange }) {
         <form>
             <input type='text' value={filterText} placeholder='Search...' onChange={(e) => onFilterTextChange(e.target.value)} />
         </form>
+    )
+}
+
+function PageForm({ pageCount, pageNumber, onPageChange }) {
+
+    function pageMovementDown() {
+        if (pageNumber > 1)
+            onPageChange(pageNumber - 1);
+        else
+            return;
+    }
+    function pageMovementUp() {
+        if (pageNumber < pageCount)
+            onPageChange((pageNumber + 1))
+        else
+            return;
+    }
+
+    return (
+        <div>
+            <button onClick={pageMovementDown}> &lt; </button>
+            <input value={pageNumber} type="text" name='pageForm' className='pageForm' size={pageCount} onChange={(e) => onPageChange(Number(e.target.value))} />/{pageCount}
+            <button onClick={pageMovementUp}> &gt; </button>
+        </div>
     )
 }

@@ -87,3 +87,7 @@ button:focus-visible {
 .user:hover{
   border: none;
 }
+
+.pageForm{
+  display: inline;
+}
