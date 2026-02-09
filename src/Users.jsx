@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import displayUserDetails from './displayUserDetails';
 
 export default function FilterableProductTable() {
 
@@ -7,13 +6,19 @@ export default function FilterableProductTable() {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
     const [filterText, setFilterText] = useState('');
+    const usersPerPage = 4;
 
     useEffect(() => {
         setIsLoading(true);
-        time.sleep(10);
-        fetch('https://jsonplaceholder.typicode.com/users')
+        let timer = setTimeout(() => fetch('https://jsonplaceholder.typicode.com/users')
             .then(res => res.json()) //converts the raw response to JSON
-            .then(data => { setUsers(data); setIsLoading(false) }); //updates the React state with the JSON and it stores it in the users state to be accessed.
+            .then(data => { setUsers(data); setIsLoading(false) }) //updates the React state with the JSON and it stores it in the users state to be accessed.)
+            .catch(() => { alert("oop! couldn't fetch") }), 1000
+        );
+        return () => {
+            clearTimeout(timer);
+        };
+
     }, []);
 
     return (
