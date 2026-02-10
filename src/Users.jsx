@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 
 export default function FilterableProductTable() {
 
@@ -30,9 +30,9 @@ export default function FilterableProductTable() {
             {isLoading ? <p>Loading...</p> :
                 <div>
                     {isLoading ? <p>Loading...</p> : null}
-                    <SearchBar filterText={filterText} onFilterTextChange={setFilterText} />
+                    <SearchBar filterText={filterText} setPageNumber={setPageNumber} onFilterTextChange={setFilterText} />
                     <DropdownMenu isSorting={isSorting} setIsSorting={setIsSorting} />
-                    <UserTable isSorting={isSorting} userCount={userCount} pageNumber={pageNumber} onUserClick={setSelectedUser} users={users} filterText={filterText} />
+                    <UserTable isSorting={isSorting} userCount={userCount} pageNumber={pageNumber} handleOnUserClick={setSelectedUser} users={users} filterText={filterText} />
                     <PageForm pageCount={pageCount} pageNumber={pageNumber} onPageChange={setPageNumber} />
 
                     {selectedUser && <div className="overlay">
@@ -63,78 +63,45 @@ function UserRow({ user, onUserClick }) {
     )
 }
 
-function UserTable({ isSorting, userCount, pageNumber, onUserClick, users, filterText }) {
-    const rows = [];
+function UserTable({ isSorting, userCount, pageNumber, handleOnUserClick, users, filterText }) {
 
-    // const usersProcessed = users.slice((pageNumber - 1) * userCount, userCount * pageNumber);
-    // var sortedList = usersProcessed.slice();//= usersProcessed.name.sort((a, b) => a.name.localeCompare(b.name));\
-
-    const filteredUsers = users.filter(user => {
-        if
-            (user.name.toLowerCase().indexOf(
+    const filterAndSortUsers = () => {
+        const filteredUsers = users.filter(user => {
+            if (user.name.toLowerCase().indexOf(
                 filterText.toLowerCase()
             ) === -1 && user.email.toLowerCase().indexOf(
                 filterText.toLowerCase()
             ) === -1
-        ) {
-            return;
-        }
-        else return true;
-    });
+            ) {
+                return;
+            }
+            else return true;
+        });
 
-    var sortedUsers = [...filteredUsers].sort((a, b) => {
+        var sortedUsers = [...filteredUsers].sort((a, b) => {
 
-        if (isSorting === 'none')
-            sortedUsers = filteredUsers.slice();
-        else if (isSorting === 'ascAlpha') {
-            return a.name.localeCompare(b.name);
-        }
-        else {
-            return a.name.localeCompare(b.name).reverse();
-        }
-    });
+            let comparison = a.name.localeCompare(b.name);
 
-    const usersToDisplay = sortedUsers.slice((pageNumber - 1) * userCount, userCount * pageNumber);
-
-    // if (isSorting === 'none')
-    //     sortedList = usersProcessed;
-    // else if (isSorting === 'ascAlpha') {
-    //     sortedList.sort((a, b) => a.name.localeCompare(b.name));
-    // }
-    // else {
-    //     sortedList.sort((a, b) => a.name.localeCompare(b.name)).reverse();
-    // }
-
-    // sortedList.forEach((user) => {//usersProcessed.forEach((user) => {
-    //     if
-    //         (user.name.toLowerCase().indexOf(
-    //             filterText.toLowerCase()
-    //         ) === -1 && user.email.toLowerCase().indexOf(
-    //             filterText.toLowerCase()
-    //         ) === -1
-    //     ) {
-    //         return;
-    //     }
-    //     rows.push(<UserRow onUserClick={onUserClick} user={user} key={user.id} />)
-
-    // }
-
-    // );
-    usersToDisplay.forEach((user) => {//usersProcessed.forEach((user) => {
-        // if
-        //     (user.name.toLowerCase().indexOf(
-        //         filterText.toLowerCase()
-        //     ) === -1 && user.email.toLowerCase().indexOf(
-        //         filterText.toLowerCase()
-        //     ) === -1
-        // ) {
-        //     return;
-        // }
-        rows.push(<UserRow onUserClick={onUserClick} user={user} key={user.id} />)
-
+            if (isSorting === 'none')
+                return filteredUsers;
+            else if (isSorting === 'ascAlpha') {
+                return comparison;
+            }
+            else {
+                return comparison * -1;
+            }
+        });
+        return sortedUsers;
     }
-
+    //Learned how to use useMemo!!! Learn code: RH03
+    const filterAndSort = useMemo(
+        () => filterAndSortUsers(users, isSorting, filterText),
+        [users, isSorting, filterText]
     );
+
+    const usersToDisplay = filterAndSort.slice((pageNumber - 1) * userCount, userCount * pageNumber);
+
+    const rowsMapped = usersToDisplay.map((user) => (<UserRow onUserClick={handleOnUserClick} user={user} key={user.id} />))
 
     return (
         <table>
@@ -145,12 +112,15 @@ function UserTable({ isSorting, userCount, pageNumber, onUserClick, users, filte
                     <th>Company</th>
                 </tr>
             </thead>
-            <tbody>{rows}</tbody>
+            <tbody>{rowsMapped}</tbody>
         </table>
     )
 }
 
-function SearchBar({ filterText, onFilterTextChange }) {
+function SearchBar({ filterText, onFilterTextChange, setPageNumber }) {
+    //Learned how to use useEffect!!! Learn code: RH01
+    useEffect(() => { setPageNumber(1) }, [filterText]);
+
     return (
         <form>
             <input type='text' value={filterText} placeholder='Search...' onChange={(e) => onFilterTextChange(e.target.value)} />
@@ -182,8 +152,11 @@ function PageForm({ pageCount, pageNumber, onPageChange }) {
     )
 }
 const DropdownMenu = ({ isSorting, setIsSorting }) => {
+    //Learned how to use useRef!!! Learn code: RH02
+    const dropdownRef = useRef(null);
+
     function dropdownToggle() {
-        document.getElementById("myDropdown").classList.toggle("show");
+        dropdownRef.current.classList.toggle("show");
     }
 
     // Close the dropdown menu if the user clicks outside of it
@@ -199,9 +172,10 @@ const DropdownMenu = ({ isSorting, setIsSorting }) => {
             }
         }
     }
+
     return <div className="dropdown center">
         <button onClick={dropdownToggle} className="dropbtn">Sort:</button>
-        <div id="myDropdown" className="dropdown-content center">
+        <div ref={dropdownRef} className="dropdown-content center">
             <button className="dropcntbtn" onClick={() => setIsSorting("ascAlpha")}>A-Z</button>
             <button className="dropcntbtn" onClick={() => setIsSorting("descAlpha")}>Z-A</button>
             {isSorting && <button className="dropcntbtn" onClick={() => setIsSorting("none")}>No sorting</button>}
