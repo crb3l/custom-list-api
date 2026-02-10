@@ -7,7 +7,8 @@ export default function FilterableProductTable() {
     const [selectedUser, setSelectedUser] = useState('');
     const [filterText, setFilterText] = useState('');
     const [pageNumber, setPageNumber] = useState(1);
-    const pageCount = Math.ceil(users.length / 4);
+    const userCount = 4;
+    const pageCount = Math.ceil(users.length / userCount);
 
     useEffect(() => {
         setIsLoading(true);
@@ -25,28 +26,32 @@ export default function FilterableProductTable() {
 
     return (
         <div>
-            {isLoading ? <p>Loading...</p> : null}
-            <SearchBar filterText={filterText} onFilterTextChange={setFilterText} />
-            <UserTable onUserClick={setSelectedUser} users={users} filterText={filterText} />
-            <PageForm pageCount={pageCount} pageNumber={pageNumber} onPageChange={setPageNumber} />
+            {isLoading ? <p>Loading...</p> :
+                <div>
+                    {isLoading ? <p>Loading...</p> : null}
+                    <SearchBar filterText={filterText} onFilterTextChange={setFilterText} />
+                    <DropdownMenu />
+                    <UserTable userCount={userCount} pageNumber={pageNumber} onUserClick={setSelectedUser} users={users} filterText={filterText} />
+                    <PageForm pageCount={pageCount} pageNumber={pageNumber} onPageChange={setPageNumber} />
 
-            {selectedUser && <div className="overlay">
-                <div className="modal">
-                    <h2>{selectedUser.name}</h2>
-                    <p>{selectedUser.email}</p>
-                    <p>Adress: {selectedUser.address.street}, {selectedUser.address.suite}, {selectedUser.address.city}, {selectedUser.address.zipcode}</p>
-                    <p>Phone: {selectedUser.phone}</p>
-                    <p>Website: {selectedUser.website}</p>
-                    <button onClick={() => setSelectedUser(null)}>Close</button>
-                </div>
-            </div>}
+                    {selectedUser && <div className="overlay">
+                        <div className="modal">
+                            <h2>{selectedUser.name}</h2>
+                            <p>{selectedUser.email}</p>
+                            <p>Adress: {selectedUser.address.street}, {selectedUser.address.suite}, {selectedUser.address.city}, {selectedUser.address.zipcode}</p>
+                            <p>Phone: {selectedUser.phone}</p>
+                            <p>Website: {selectedUser.website}</p>
+                            <button onClick={() => setSelectedUser(null)}>Close</button>
+                        </div>
+                    </div>}
+                </div>}
         </div>
     );
 }
 
 function UserRow({ user, onUserClick }) {
     const name = user.name;
-    const userArray = _.chunk(React.user.toArray(user), 4)
+    // const userArray = _.chunk(React.user.toArray(user), 4)
     // <span>{name}</span>;
     return (
         <tr>
@@ -57,9 +62,10 @@ function UserRow({ user, onUserClick }) {
     )
 }
 
-function UserTable({ onUserClick, users, filterText }) {
+function UserTable({ userCount, pageNumber, onUserClick, users, filterText }) {
     const rows = [];
-    users.forEach((user) => {
+
+    users.slice((pageNumber - 1) * userCount, userCount * pageNumber).forEach((user) => {
         if
             (user.name.toLowerCase().indexOf(
                 filterText.toLowerCase()
@@ -73,6 +79,8 @@ function UserTable({ onUserClick, users, filterText }) {
     }
 
     );
+
+
 
     return (
         <table>
@@ -118,4 +126,31 @@ function PageForm({ pageCount, pageNumber, onPageChange }) {
             <button onClick={pageMovementUp}> &gt; </button>
         </div>
     )
+}
+function DropdownMenu() {
+    function dropdownToggle() {
+        document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+    // Close the dropdown menu if the user clicks outside of it
+    window.onclick = function (event) {
+        if (!event.target.matches('.dropbtn')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            var i;
+            for (i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+    return <div className="dropdown">
+        <button onClick={dropdownToggle} className="dropbtn">Sort:</button>
+        <div id="myDropdown" className="dropdown-content">
+            <a href="#home">A-Z</a>
+            <a href="#about">Z-A</a>
+            <a href="#contact">No sorting</a>
+        </div>
+    </div>
 }
