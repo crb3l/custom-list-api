@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { memo } from 'react';
 
 export default function FilterableProductTable() {
 
@@ -8,6 +9,10 @@ export default function FilterableProductTable() {
     const [filterText, setFilterText] = useState('');
     const [pageNumber, setPageNumber] = useState(1);
     const [isSorting, setIsSorting] = useState('none');
+
+    //Learned how to use useMemo!!! Learn code: RH04
+    const handleSelect = useCallback((user) => { setSelectedUser(user) }, []);
+
     const userCount = 4;
     const pageCount = Math.ceil(users.length / userCount);
 
@@ -32,7 +37,7 @@ export default function FilterableProductTable() {
                     {isLoading ? <p>Loading...</p> : null}
                     <SearchBar filterText={filterText} setPageNumber={setPageNumber} onFilterTextChange={setFilterText} />
                     <DropdownMenu isSorting={isSorting} setIsSorting={setIsSorting} />
-                    <UserTable isSorting={isSorting} userCount={userCount} pageNumber={pageNumber} handleOnUserClick={setSelectedUser} users={users} filterText={filterText} />
+                    <UserTable isSorting={isSorting} userCount={userCount} pageNumber={pageNumber} handleOnUserClick={handleSelect} users={users} filterText={filterText} />
                     <PageForm pageCount={pageCount} pageNumber={pageNumber} onPageChange={setPageNumber} />
 
                     {selectedUser && <div className="overlay">
@@ -63,7 +68,7 @@ function UserRow({ user, onUserClick }) {
     )
 }
 
-function UserTable({ isSorting, userCount, pageNumber, handleOnUserClick, users, filterText }) {
+const UserTable = memo(function UserTable({ isSorting, userCount, pageNumber, handleOnUserClick, users, filterText }) {//Learn code: RH04
 
     const filterAndSortUsers = () => {
         const filteredUsers = users.filter(user => {
@@ -77,14 +82,14 @@ function UserTable({ isSorting, userCount, pageNumber, handleOnUserClick, users,
             }
             else return true;
         });
-
+        if (isSorting === 'none')
+            return filteredUsers;
         var sortedUsers = [...filteredUsers].sort((a, b) => {
 
             let comparison = a.name.localeCompare(b.name);
 
-            if (isSorting === 'none')
-                return filteredUsers;
-            else if (isSorting === 'ascAlpha') {
+
+            if (isSorting === 'ascAlpha') {
                 return comparison;
             }
             else {
@@ -115,7 +120,7 @@ function UserTable({ isSorting, userCount, pageNumber, handleOnUserClick, users,
             <tbody>{rowsMapped}</tbody>
         </table>
     )
-}
+});
 
 function SearchBar({ filterText, onFilterTextChange, setPageNumber }) {
     //Learned how to use useEffect!!! Learn code: RH01
