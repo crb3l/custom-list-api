@@ -66,19 +66,10 @@ function UserRow({ user, onUserClick }) {
 function UserTable({ isSorting, userCount, pageNumber, onUserClick, users, filterText }) {
     const rows = [];
 
-    const usersProcessed = users.slice((pageNumber - 1) * userCount, userCount * pageNumber);
-    var sortedList = usersProcessed.slice();//= usersProcessed.name.sort((a, b) => a.name.localeCompare(b.name));
+    // const usersProcessed = users.slice((pageNumber - 1) * userCount, userCount * pageNumber);
+    // var sortedList = usersProcessed.slice();//= usersProcessed.name.sort((a, b) => a.name.localeCompare(b.name));\
 
-    if (isSorting === 'none')
-        sortedList = usersProcessed;
-    else if (isSorting === 'ascAlpha') {
-        sortedList.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    else {
-        sortedList.sort((a, b) => a.name.localeCompare(b.name)).reverse();
-    }
-
-    sortedList.forEach((user) => {//usersProcessed.forEach((user) => {
+    const filteredUsers = users.filter(user => {
         if
             (user.name.toLowerCase().indexOf(
                 filterText.toLowerCase()
@@ -88,13 +79,62 @@ function UserTable({ isSorting, userCount, pageNumber, onUserClick, users, filte
         ) {
             return;
         }
+        else return true;
+    });
+
+    var sortedUsers = [...filteredUsers].sort((a, b) => {
+
+        if (isSorting === 'none')
+            sortedUsers = filteredUsers.slice();
+        else if (isSorting === 'ascAlpha') {
+            return a.name.localeCompare(b.name);
+        }
+        else {
+            return a.name.localeCompare(b.name).reverse();
+        }
+    });
+
+    const usersToDisplay = sortedUsers.slice((pageNumber - 1) * userCount, userCount * pageNumber);
+
+    // if (isSorting === 'none')
+    //     sortedList = usersProcessed;
+    // else if (isSorting === 'ascAlpha') {
+    //     sortedList.sort((a, b) => a.name.localeCompare(b.name));
+    // }
+    // else {
+    //     sortedList.sort((a, b) => a.name.localeCompare(b.name)).reverse();
+    // }
+
+    // sortedList.forEach((user) => {//usersProcessed.forEach((user) => {
+    //     if
+    //         (user.name.toLowerCase().indexOf(
+    //             filterText.toLowerCase()
+    //         ) === -1 && user.email.toLowerCase().indexOf(
+    //             filterText.toLowerCase()
+    //         ) === -1
+    //     ) {
+    //         return;
+    //     }
+    //     rows.push(<UserRow onUserClick={onUserClick} user={user} key={user.id} />)
+
+    // }
+
+    // );
+    usersToDisplay.forEach((user) => {//usersProcessed.forEach((user) => {
+        // if
+        //     (user.name.toLowerCase().indexOf(
+        //         filterText.toLowerCase()
+        //     ) === -1 && user.email.toLowerCase().indexOf(
+        //         filterText.toLowerCase()
+        //     ) === -1
+        // ) {
+        //     return;
+        // }
         rows.push(<UserRow onUserClick={onUserClick} user={user} key={user.id} />)
 
     }
 
     );
-
-
 
     return (
         <table>
