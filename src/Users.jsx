@@ -7,6 +7,7 @@ export default function FilterableProductTable() {
     const [selectedUser, setSelectedUser] = useState('');
     const [filterText, setFilterText] = useState('');
     const [pageNumber, setPageNumber] = useState(1);
+    const [isSorting, setIsSorting] = useState('none');
     const userCount = 4;
     const pageCount = Math.ceil(users.length / userCount);
 
@@ -30,8 +31,8 @@ export default function FilterableProductTable() {
                 <div>
                     {isLoading ? <p>Loading...</p> : null}
                     <SearchBar filterText={filterText} onFilterTextChange={setFilterText} />
-                    <DropdownMenu />
-                    <UserTable userCount={userCount} pageNumber={pageNumber} onUserClick={setSelectedUser} users={users} filterText={filterText} />
+                    <DropdownMenu isSorting={isSorting} setIsSorting={setIsSorting} />
+                    <UserTable isSorting={isSorting} userCount={userCount} pageNumber={pageNumber} onUserClick={setSelectedUser} users={users} filterText={filterText} />
                     <PageForm pageCount={pageCount} pageNumber={pageNumber} onPageChange={setPageNumber} />
 
                     {selectedUser && <div className="overlay">
@@ -62,10 +63,22 @@ function UserRow({ user, onUserClick }) {
     )
 }
 
-function UserTable({ userCount, pageNumber, onUserClick, users, filterText }) {
+function UserTable({ isSorting, userCount, pageNumber, onUserClick, users, filterText }) {
     const rows = [];
 
-    users.slice((pageNumber - 1) * userCount, userCount * pageNumber).forEach((user) => {
+    const usersProcessed = users.slice((pageNumber - 1) * userCount, userCount * pageNumber);
+    var sortedList = usersProcessed.slice();//= usersProcessed.name.sort((a, b) => a.name.localeCompare(b.name));
+
+    if (isSorting === 'none')
+        sortedList = usersProcessed;
+    else if (isSorting === 'ascAlpha') {
+        sortedList.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    else {
+        sortedList.sort((a, b) => a.name.localeCompare(b.name)).reverse();
+    }
+
+    sortedList.forEach((user) => {//usersProcessed.forEach((user) => {
         if
             (user.name.toLowerCase().indexOf(
                 filterText.toLowerCase()
@@ -76,6 +89,7 @@ function UserTable({ userCount, pageNumber, onUserClick, users, filterText }) {
             return;
         }
         rows.push(<UserRow onUserClick={onUserClick} user={user} key={user.id} />)
+
     }
 
     );
@@ -127,7 +141,7 @@ function PageForm({ pageCount, pageNumber, onPageChange }) {
         </div>
     )
 }
-function DropdownMenu() {
+const DropdownMenu = ({ isSorting, setIsSorting }) => {
     function dropdownToggle() {
         document.getElementById("myDropdown").classList.toggle("show");
     }
@@ -145,12 +159,13 @@ function DropdownMenu() {
             }
         }
     }
-    return <div className="dropdown">
+    return <div className="dropdown center">
         <button onClick={dropdownToggle} className="dropbtn">Sort:</button>
-        <div id="myDropdown" className="dropdown-content">
-            <a href="#home">A-Z</a>
-            <a href="#about">Z-A</a>
-            <a href="#contact">No sorting</a>
+        <div id="myDropdown" className="dropdown-content center">
+            <button className="dropcntbtn" onClick={() => setIsSorting("ascAlpha")}>A-Z</button>
+            <button className="dropcntbtn" onClick={() => setIsSorting("descAlpha")}>Z-A</button>
+            {isSorting && <button className="dropcntbtn" onClick={() => setIsSorting("none")}>No sorting</button>}
         </div>
     </div>
 }
+
